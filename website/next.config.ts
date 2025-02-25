@@ -3,7 +3,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
-  basePath: "/cs3042-right-to-repair",
+  basePath: "/cs3042-project",
+  assetPrefix: "/cs3042-project/",
   output: "export",  // <=== enables static exports
   reactStrictMode: true,
 }
