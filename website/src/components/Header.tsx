@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as framerMotion from 'framer-motion';
-const { motion, AnimatePresence } = framerMotion;
+const { motion } = framerMotion;
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);

@@ -76,7 +76,7 @@ export default function About() {
       <section className="mt-16 fade-in">
         <h2 className="text-2xl font-semibold mb-4">Get Involved</h2>
         <p className="text-lg mb-8">
-          Join our community and help support the Right to Repair movement. Whether you're a repair technician, policy maker, or concerned consumer, there are many ways to contribute.
+          Join our community and help support the Right to Repair movement. Whether you&apos;re a repair technician, policy maker, or concerned consumer, there are many ways to contribute.
         </p>
         
         <div className="bg-blue-50 rounded-lg p-8 border border-blue-100">

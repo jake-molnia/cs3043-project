@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 interface HeroSectionProps {
   title: string;
@@ -11,13 +11,9 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ title, subtitle, ctaText, ctaLink }: HeroSectionProps) {
-  const [mounted, setMounted] = useState(false);
-  
   useEffect(() => {
-    // Only import and use framer-motion on the client side
-    import('framer-motion')
-      .then(() => setMounted(true))
-      .catch(err => console.error('Failed to load Framer Motion:', err));
+    // This effect ensures the component is only rendered on the client side
+    // No need to track mounted state as we're not conditionally rendering
   }, []);
 
   return (
@@ -68,4 +64,3 @@ export default function HeroSection({ title, subtitle, ctaText, ctaLink }: HeroS
     </div>
   );
 }
-
