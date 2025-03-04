@@ -1,5 +1,6 @@
 import HeroSection from '@/components/HeroSection';
 import Card from '@/components/Card';
+import MapSection from '@/components/MapSection';
 import Link from 'next/link';
 import { Metadata } from 'next';
 
@@ -60,6 +61,8 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      <MapSection />
     </>
   );
 }
