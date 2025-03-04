@@ -16,14 +16,6 @@ const MapSection = () => {
           <USAMap />
         </div>
         
-        <div className="mt-10 text-center">
-          <a 
-            href="/resources" 
-            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300"
-          >
-            Explore More Resources
-          </a>
-        </div>
       </div>
     </section>
   );
