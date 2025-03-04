@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -81,11 +80,11 @@ export default function About() {
           </div>
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
             <h3 className="text-xl font-semibold mb-2">Consumer Rights</h3>
-            <p>We advocate for consumers' right to have full ownership and control over the devices they purchase.</p>
+            <p>We advocate for consumers&apos; right to have full ownership and control over the devices they purchase.</p>
           </div>
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
             <h3 className="text-xl font-semibold mb-2">Knowledge Sharing</h3>
-            <p>We're committed to making repair knowledge accessible to everyone, regardless of technical background.</p>
+            <p>We&apos;re committed to making repair knowledge accessible to everyone, regardless of technical background.</p>
           </div>
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
             <h3 className="text-xl font-semibold mb-2">Community</h3>

@@ -1,5 +1,3 @@
-import { i } from "framer-motion/client";
-
 export const timelineData = [
     {
       id: 1,
