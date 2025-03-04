@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Papa from 'papaparse';
 
 const USAMap = () => {
@@ -6,12 +6,68 @@ const USAMap = () => {
   const [hoveredState, setHoveredState] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const mapContainerRef = useRef(null);
+
+  // Sample fallback data
+  const fallbackData = {
+    "CA": {
+      "Abbreviation": "CA",
+      "State Name": "California",
+      "Current": 1,
+      "Passed": 1,
+      "2025 Bill Number": "SB 244",
+      "Signed Date": "10/10/2023",
+      "Effective Date": "07/01/2024",
+      "Covered Products": "Electronics, appliances, and farm equipment",
+      "Scope": "Manufacturers must provide parts, tools, and documentation",
+      "URL": "https://leginfo.legislature.ca.gov/"
+    },
+    "NY": {
+      "Abbreviation": "NY",
+      "State Name": "New York",
+      "Current": 1,
+      "Passed": 0,
+      "2025 Bill Number": "S4104",
+      "Signed Date": "",
+      "Effective Date": "",
+      "Covered Products": "Consumer electronics and household appliances",
+      "Scope": "Proposed legislation for repair access",
+      "URL": "https://www.nysenate.gov/"
+    },
+    "CO": {
+      "Abbreviation": "CO",
+      "State Name": "Colorado",
+      "Current": 0,
+      "Passed": 1,
+      "2025 Bill Number": "HB22-1031",
+      "Signed Date": "03/24/2022",
+      "Effective Date": "01/01/2023",
+      "Covered Products": "Powered wheelchairs",
+      "Scope": "Requires manufacturers to provide parts, tools, and documentation",
+      "URL": "https://leg.colorado.gov/"
+    }
+  };
 
   // Load and parse the CSV data
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Set a timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+          console.warn("Data loading timeout - using fallback data");
+          setStatesData(fallbackData);
+          setDataLoaded(true);
+          setLoadError(true);
+        }, 5000);
+        
         const response = await fetch('/cs3043-project/map/data-gitbk.csv');
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+        
         const csvData = await response.text();
         
         Papa.parse(csvData, {
@@ -30,10 +86,16 @@ const USAMap = () => {
           },
           error: (error) => {
             console.error('Error parsing CSV:', error);
+            setStatesData(fallbackData);
+            setDataLoaded(true);
+            setLoadError(true);
           }
         });
       } catch (error) {
         console.error('Error loading CSV file:', error);
+        setStatesData(fallbackData);
+        setDataLoaded(true);
+        setLoadError(true);
       }
     };
 
@@ -42,9 +104,19 @@ const USAMap = () => {
 
   // Handle mouse movement for tooltip positioning
   const handleMouseMove = (e) => {
-    setTooltipPosition({ 
-      x: e.clientX + 10, 
-      y: e.clientY + 10 
+    if (!mapContainerRef.current) return;
+    
+    // Get the map container's position
+    const rect = mapContainerRef.current.getBoundingClientRect();
+    
+    // Calculate position relative to the map container
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Set tooltip position with an offset to prevent it from appearing directly under the cursor
+    setTooltipPosition({
+      x: x + 15, // Offset to the right
+      y: y - 10  // Offset upward
     });
   };
 
@@ -75,6 +147,12 @@ const USAMap = () => {
     <div className="relative w-full max-w-5xl mx-auto">
       <h2 className="text-3xl font-bold text-center mb-6">Right to Repair Legislation Map</h2>
       
+      {loadError && (
+        <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded-md">
+          Unable to load the complete dataset. Showing sample data for demonstration purposes.
+        </div>
+      )}
+      
       <div className="mb-4 flex flex-wrap justify-center gap-4">
         <div className="flex items-center">
           <div className="w-4 h-4 bg-red-700 mr-2"></div>
@@ -97,6 +175,7 @@ const USAMap = () => {
       </div>
 
       <div 
+        ref={mapContainerRef}
         className="relative w-full" 
         onMouseMove={handleMouseMove}
       >
@@ -110,7 +189,8 @@ const USAMap = () => {
             </pattern>
           </defs>
 
-          {/* State path*/}
+          {/* State paths are removed for brevity - keep your original paths here */}
+          {/* This is where your state path elements would go */}
           <path id="AK" d="M161.1,453.7 l-0.3,85.4 1.6,1 3.1,0.2 1.5,-1.1 h2.6 l0.2,2.9 7,6.8 0.5,2.6 3.4,-1.9 0.6,-0.2 0.3,-3.2 1.5,-1.6 1.1,-0.2 1.9,-1.5 3.1,2.1 0.6,2.9 1.9,1.1 1.1,2.4 3.9,1.8 3.4,6 2.7,3.9 2.3,2.7 1.5,3.7 5,1.8 5.2,2.1 1,4.4 0.5,3.2 -1,3.4 -1.8,2.3 -1.6,-0.8 -1.5,-3.1 -2.7,-1.5 -1.8,-1.1 -0.8,0.8 1.5,2.7 0.2,3.7 -1.1,0.5 -1.9,-1.9 -2.1,-1.3 0.5,1.6 1.3,1.8 -0.8,0.8 c0,0 -0.8,-0.3 -1.3,-1 -0.5,-0.6 -2.1,-3.4 -2.1,-3.4 l-1,-2.3 c0,0 -0.3,1.3 -1,1 -0.6,-0.3 -1.3,-1.5 -1.3,-1.5 l1.8,-1.9 -1.5,-1.5 v-5 h-0.8 l-0.8,3.4 -1.1,0.5 -1,-3.7 -0.6,-3.7 -0.8,-0.5 0.3,5.7 v1.1 l-1.5,-1.3 -3.6,-6 -2.1,-0.5 -0.6,-3.7 -1.6,-2.9 -1.6,-1.1 v-2.3 l2.1,-1.3 -0.5,-0.3 -2.6,0.6 -3.4,-2.4 -2.6,-2.9 -4.8,-2.6 -4,-2.6 1.3,-3.2 v-1.6 l-1.8,1.6 -2.9,1.1 -3.7,-1.1 -5.7,-2.4 h-5.5 l-0.6,0.5 -6.5,-3.9 -2.1,-0.3 -2.7,-5.8 -3.6,0.3 -3.6,1.5 0.5,4.5 1.1,-2.9 1,0.3 -1.5,4.4 3.2,-2.7 0.6,1.6 -3.9,4.4 -1.3,-0.3 -0.5,-1.9 -1.3,-0.8 -1.3,1.1 -2.7,-1.8 -3.1,2.1 -1.8,2.1 -3.4,2.1 -4.7,-0.2 -0.5,-2.1 3.7,-0.6 v-1.3 l-2.3,-0.6 1,-2.4 2.3,-3.9 v-1.8 l0.2,-0.8 4.4,-2.3 1,1.3 h2.7 l-1.3,-2.6 -3.7,-0.3 -5.2,2.6 -2.1,3.4 -0.5,1.1 -1.3,-1.8 -0.3,-2.4 -2.8,-2.4 -1.5,-2.6 -2.6,-0.5 -3.9,-3.7 -3.7,3.3 -6.8,5.5 -4,0 -2.8,-1.9 -2.1,-1.5 -2.4,0.5 -4,1.8 -3.6,0.5 -4.7,0.3 -4,0.3 -3.5,3.2 -0.3,2.4 -1.5,1.5 -0.5,1.1 0.6,1.6 1.5,0.3 1,3.1 4,1.3 4.2,1.3 0.8,0.8 1.3,0.3 0.8,2.3 2.9,0.8 0.8,1 -0.8,1.9 0.3,1.1 -0.8,0.6 -1.8,0 -1.5,-1.3 -1,-0.3 -3.9,2.3 v0.8 l1.3,1.5 2.3,2.3 0.8,4.8 0.3,3.9 1.3,0.5 1.3,1 0.3,1.6 -1.1,1.3 -0.3,3.3 -1,1 h-5.2 l-3.3,-2.4 -1,-3.1 -0.5,-0.3 -0.5,2.6 -1.3,-2.3 -1.5,-0.3 -0.5,-3.1 -4.5,-3.1 -2.4,-3.2 -2.9,-0.8 -1,-1.1 -8.7,-0.3 -5.2,0.2 -1.5,2.4 -0.3,1.5 -2.8,1.9 -5.2,1.1 -5.8,2.1 -1.8,1.5 -1.5,3.1 -0.3,0.5 -0.2,0.6 v2.1 l-1.9,1.2 -3,0.6 -0.6,2.3 -5.4,2.4 -6.6,3.7 -1.3,0.5 -2.6,-0.8 -3.5,-1.8 -3.9,-0.3 -1.2,-0.6 -2.5,2.7 -1.6,1.9 -2.9,1.1 -5.1,1.3 -3.1,-0.8 -2.6,1.3 -2.3,0.8 -4,0.3 -2.4,0.5 -3.1,-1.3 -2.3,0.6 -1.5,0.2 -2.6,-1.1 -2.9,-1.9 -2.9,-2.9 -7.5,1.5 -3.5,0.3 -0.8,1.3 -4.2,1.3 -4.9,0.9 -1.5,-0.9 -4.2,-0.9 -0.8,-2.6 v-1 l1.2,-1.6 0.2,-3.9 -1.1,-3.5 -3.1,-4.9 -0.8,-2.3 -0.8,-3.1 -2.3,-4.4 -1,-1 -3.1,-0.2 -1.3,-1.1 -0.5,-1.8 -2.6,-1.5 -1.3,-1.1 -2.6,0.5 -1,-1.1 -1.5,-0.5 -4.5,0.3 -2.4,0.7 -0.3,0.5 -0.5,-0.2 -1.3,-1.3 -0.5,-1.5 -3.9,-2.3 -0.8,-0.8 -0.3,-3.9 -2.9,-2.3 -0.8,-1.6 0.3,-2.1 0.8,-0.8 0.8,-1.8 -0.3,-1.8 0.8,-1.9 1.1,-1.1 0.3,-1 -2.9,-1.3 -1.1,-1.1 v-2.3 l-1.3,-1.3 -3.6,0.3 -3.4,1.3 0.3,1.1 1,0.5 -0.8,1.1 -2.9,1 -0.3,0.6 h-4.7 l-3.9,0.9 -2.9,1.9 -2.1,0.8 -0.5,0.2 -2.9,0 -0.5,-0.5 -0.8,0.2 -2.1,1.5 -0.5,0.5 -2.7,0.3 -0.8,1 -0.8,-0.2 0.5,-1.1 -0.3,-0.8 -1.3,-0.3 -1,0.6 -1.3,0.2 -0.3,-0.2 0.6,-0.6 0.5,-0.9 0,-0.5 -1.6,-1.6 -0.3,-1.3 0.8,-0.6 h1.3 l-0.5,-0.6 -0.3,-1.3 -1.3,-0.6 -0.3,-0.6 0.8,-1 -0.6,-0.3 -0.8,0.6 -1.6,0.2 c0,0 -0.3,-0.2 -0.2,-0.6 0,-0.4 0.2,-1.1 0.2,-1.1 l-0.8,-0.2 c0,0 -0.5,1.1 -0.8,1.1 -0.3,0 -1,-0.2 -1,-0.2 l-3.1,-0.2 -2.4,-2.3 -1.6,-0.6 -1.3,-0.2 -1.5,0.8 0,0.6 1.5,1.5 0.3,1.1 -1.5,0.8 -1.3,0.2 -0.6,1.1 0.2,1.6 -1.5,2.3 -0.3,1.3 2.3,0.2 0.5,0.6 -0.6,0.8 -1.6,0.2 -1,1.1 -0.2,2.1 -2.6,2.4 -0.6,1.6 -2.3,0.8 -0.5,1.5 -0.5,0.8 -0.8,3.1 -2.9,1.9 0.3,3.7 3.5,3.7 0.6,3.4 3.2,4.4 1.5,0.5 2.3,0 1,1.9 -0.8,1.6 0.6,0.6 -0.8,2.4 -1,3.1 v0.8 l-1.8,3.2 -2.1,2.6 -0.3,0.5 0.3,0.6 -0.3,1.3 2.1,0.6 1.1,0.6 1.8,-0.6 1.1,1.1 -0.8,0.8 -2.1,0.6 -0.6,0.6 1.6,1.6 1.5,0.6 h0.8 l3.1,-2.6 1.1,1 0.8,-0.2 1.5,-0.8 0.3,0.2 0.5,1.6 1,0.6 1,-1.1 1.6,0.2 0.5,-0.3 v-0.8 l-0.8,-0.6 0.3,-0.2 1.9,0.2 1.5,0.5 1.3,1.8 1,2.1 3.1,2.6 1.5,2.3 0.2,0.3 v1.1 l0.5,0.6 1.5,0.2 0.5,0 0.5,-1.6 1.8,-1.1 0.5,0.2 -0.8,1.6 0.6,1 1.6,1.6 0.6,1.9 0.8,0.6 h1.3 l1.1,-0.3 2.1,0.3 2.3,-2.9 1.1,-0.3 1.9,1.5 1.9,0.6 1.1,1.3 0.8,0.2 1.3,-0.8 0.3,0.6 h1.9 l2.3,-1.3 1.1,0.6 1.3,1.3 0.3,1.6 1.8,1.6 0.3,0.3 -0.3,1.6 -1.9,0.6 -0.3,0.6 -0.3,3.7 0.3,0.8 2.1,-0.3 2.6,-1.1 0.8,-1.3 0.3,-3.4 2.1,-2.6 1.1,-0.2 0.6,1.6 1.5,-0.2 0.5,-0.8 1.9,0.6 2.3,-0.9 1.1,-1.1 0.6,0.2 c0,0 -0.2,1 0,1.3 0.2,0.3 0.5,1.6 0.5,1.6 l1.1,0.2 0.5,-1.5 0.6,-0.2 0.3,0.8 1.1,0.6 1.5,-0.5 0.8,-1.6 1.5,0.2 1.5,1.1 -1,1.1 -0.8,0.2 -0.3,2.1 1.1,0.2 1.1,-1.3 1.3,-0.2 1.3,-1.3 0.6,-2.9 1,-0.3 c0,0 0.3,1 0.6,1 0.3,0 2.3,-0.3 2.3,-0.3 l0.8,-1.9 0.3,-1.1 -1.1,-1.9 1,-0.5 2.3,0.2 0.2,0.5 0.3,1.8 0.8,-0.2 0.6,-2.1 -0.8,-0.5 v-0.3 l3.2,-2.3 1.3,0.8 -1.3,2.3 0.6,1.8 1.3,0.3 0.6,-0.5 1.3,0.3 1.6,0.6 1.6,-0.6 0.2,-1 2.1,-0.3 1.6,-1.6 0.2,-3.1 1.5,-0.3 0.2,1.3 1.1,0.3 0.8,-0.6 2.9,-2.7 1.3,-0.6 1.5,0.2 1.3,-0.6 -0.2,-1 -0.8,-0.5 -3.9,-1.9 -2.3,-1.5 0,-1.5 -1.8,-1.9 -2.6,-1.9 0.2,-2.7 7.5,1.1 0.6,0.5 3.4,5.5 0.6,2.6 -0.8,0.5 -0.3,1.9 -5.2,3.1 -1.8,0.5 -0.6,2.9 -1.5,1.3 -0.6,2.3 0.6,1.9 -2.9,2.7 -5,1.1 -0.2,1.3 2.6,2.3 0.8,1.3 -0.3,1 -3.1,1.3 -1.5,1.5 -0.5,1.1 -2.7,-0.5 -0.3,0.5 0,1.3 -1.5,0.8 -1.1,-0.5 -0.6,-2.9 -1.9,-1.5 -0.6,0.5 -0.3,3.7 -1.9,1.5 h-1.6 l-0.3,-1.9 4.4,-5.8 4.7,-1.5 0.5,-3.9 2.7,-5.5 1.8,-1.1 -0.2,-5.8 1.3,-3.1 v-2.3 l0.6,-1.1 3.4,-5.7 7.8,-5.2 0.6,-2.1 4.9,-4.2 0.3,-3.2 3.5,-2.6 1,-1.8 v-4.4 l1.1,-2.7 2.3,-0.6 2.6,-1.3 3.2,-3.4 3,-1.8 0.5,-1.9 3.4,-5.3 1.1,-5.4 1.3,-1.4 4.8,-9.8 0.8,-4.8 1.4,-1.5 0.3,-2.3 2.4,-5 3,-3.5 0.6,-5.7 1.5,-2.7 0.5,-2.4 -1.3,-2.9 -4.8,-1.8 -1.3,-5.3 -2.9,-1.5 -0.8,-1.8 -0.8,-4.5 -1.8,-1.9 -0.6,-2.4 -2.9,-0.6 -2,-5.1 0.2,-1.5 2.6,-0.6 1.1,-1 5.2,-13.1 0.6,-4.8 -0.3,-3.9 -1.5,-3.5 -1,-3.9 -4.2,-7.4 -0.3,-3.1 0.8,-4.3 -0.3,-1.1 -1.5,-0.8 -0.8,-2.4 -2.3,-2.3 -3.7,-1.3 -1,-4.4 -2.3,-2.8 h-2.9 l-1.1,-1.9 -0.2,-3.6 -1.3,-0.8 -0.3,-2.7 -4.8,-0.9 -0.6,-0.8 0.9,-1.8 0,-4.2 -0.6,-0.6 -0.6,-3.5 -2.7,-3.7 -6.6,-16.3 -0.3,-3.5 1.1,-0.6 1,-5.3 3,-7.6 -0.5,-2.9 0.5,-2.9 -1.1,-8.5 -2.9,-8.9 -0.5,-5.5 1.6,-6 -1.3,-4.1 -0.3,-5.5 -1.8,-0.8 -1.5,-6.3 -0.5,-5.3 -2.6,-5.1 -1.9,-2.1 -3.1,-2.5 -4.5,-1.3 -2.9,-1.1 -3.4,-4.7 0.2,-3.2 -2.6,-1.1 -2.2,-1.3 -1.5,-2.1 -2.8,-2 -3,-1.5 0,-1.6 1.8,-1.5 -1.5,-1.5 0.5,-0.6 -2.8,-1.5 1.1,-2.1 -1,-2.9 -2.1,-0.8 -0.2,-1.3 1.1,-1.1 -2.8,-3.9 -1.8,-1.6 0.7,-1.6 -2.8,-1 1.5,-0.8 -0.3,-0.3 -1.5,0.2 -0.5,0.5 -3.4,-2.1 0.2,-1 -4.2,-0.6 -2.6,-1.8 -1.9,-1 -4,-0.2 -0.8,-1.3 0.2,-1.3 -1.8,0.2 -2.7,-1.8 -3.4,-1.1 -2.9,-7.4 -9,-0.1 -2.2,-1.5 -4.2,-0.8 -4.4,0.5 -1.9,-1 -0.4,-0.9 z" fill={getStateColor("AK")} stroke="#FFFFFF" strokeWidth="1" onClick={() => setHoveredState("AK")} onMouseEnter={() => setHoveredState("AK")} onMouseLeave={() => setHoveredState(null)} style={{cursor: 'pointer'}}>
             {hasStripes("AK") && <rect x="161.1" y="453.7" width="217" height="100" fill="url(#diagonalHatch)" />}
           </path>
@@ -164,8 +244,7 @@ const USAMap = () => {
           </path>
           <path id="LA" d="M526.9,485.9 l8.1,-0.3 10.3,3.6 6.5,1.1 3.7,-1.5 3.2,1.1 3.2,1 0.8,-2.1 -3.2,-1.1 -2.6,0.5 -3.4,-1.3 0.5,-1.7 3.4,-0.9 1.6,-1.5 0.8,-4.2 -1,-1.1 -0.2,-2.3 2.1,-4.7 2.6,-2.9 0.8,-4.4 1.8,-4.2 0.3,-6.7 -1,-1.1 0.3,-2.4 -2.3,-3.4 -0.5,-2.4 0.4,-2.1 1.9,-4.2 -0.3,-2.6 1.1,-1.5 -1,-1.8 -1.6,-0.2 -0.8,-1.3 0.6,-0.8 -0.8,-1.3 -0.3,-2.7 -1.6,-0.7 0.8,-1.5 -1.6,-1.9 -0.2,-1 1.3,-0.7 -0.6,-0.8 -0.8,-2.9 -0.8,-0.3 0.7,-0.7 -0.9,-1 -0.2,-1.8 0.9,-1.9 0,-0.6 -18.1,1 -17.9,1 0.4,2.3 2.8,19.4 2.8,18.7 0.5,3.4 2.4,1.9 0.9,1.1 -0.1,1.9 -1.9,1.7 -0.7,2.1 0.8,2.5 -0.8,1.5 -1.1,0.2 -0.5,0.9 1.3,0.8 -0.3,0.8 -0.9,1.4 0.7,0.7 -0.1,1 -0.7,0.6 0,1 0.7,0.6 0.9,2.1 -0.1,1.4 1.5,2.3 0.2,1 -0.7,0.6 z" fill={getStateColor("LA")} stroke="#FFFFFF" strokeWidth="1" onClick={() => setHoveredState("LA")} onMouseEnter={() => setHoveredState("LA")} onMouseLeave={() => setHoveredState(null)} style={{cursor: 'pointer'}}>
             {hasStripes("LA") && <rect x="520" y="430" width="60" height="60" fill="url(#diagonalHatch)" />}
-          </path>
- 
+          </path> 
         </svg>
         
         {/* Tooltip */}
