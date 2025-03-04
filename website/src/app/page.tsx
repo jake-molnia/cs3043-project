@@ -3,6 +3,7 @@ import Card from '@/components/Card';
 import MapSection from '@/components/MapSection';
 import Link from 'next/link';
 import { Metadata } from 'next';
+import TestimonialsSection from '@/components/TestimonialsSection';
 
 export const metadata: Metadata = {
   title: 'Right to Repair | Home',
@@ -61,6 +62,7 @@ export default function Home() {
           </Link>
         </div>
       </section>
+      <TestimonialsSection />
 
       <MapSection />
     </>
