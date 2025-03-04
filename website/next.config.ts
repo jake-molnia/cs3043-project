@@ -11,8 +11,6 @@ const nextConfig = {
     unoptimized: true,
   },
   trailingSlash: true,
-  // This helps with GitHub Pages or other static hosting
-  assetPrefix: process.env.NODE_ENV === 'production' ? '.' : '',
 }
 
 export default nextConfig;
