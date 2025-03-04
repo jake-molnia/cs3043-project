@@ -10,8 +10,8 @@ export default function About() {
   const teamMembers = [
     {
       id: 1,
-      name: "Alex Johnson",
-      role: "Founder & Advocate",
+      name: "Kamala Greenwood",
+      role: "Repair Technician",
       bio: "Technology enthusiast with 15+ years experience in consumer electronics repair.",
       imageSrc: "/api/placeholder/400/400"
     },
