@@ -48,6 +48,7 @@ export default function About() {
             >
               <div className="relative h-64 w-full overflow-hidden">
                 {/* Replace Image component with regular img tag for static export */}
+                { /* eslint-disable-next-line @next/next/no-img-element */ }
                 <img
                   src={member.imageSrc}
                   alt={`Photo of ${member.name}`}

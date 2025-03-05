@@ -95,6 +95,7 @@ const TestimonialsSection = () => {
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
               <div className="h-60 relative overflow-hidden">
+                { /* eslint-disable-next-line @next/next/no-img-element */ }
                 <img 
                   src={testimonial.image} 
                   alt={`Photo of ${testimonial.name}`}
