@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Papa from 'papaparse';
 
+interface StateData {
+  Abbreviation: string;
+  [key: string]: any;
+
+}
+
 const USAMap = () => {
   const [statesData, setStatesData] = useState({});
   const [hoveredState, setHoveredState] = useState(null);
@@ -77,14 +83,14 @@ const USAMap = () => {
           skipEmptyLines: true,
           complete: (results) => {
             const data = {};
-            results.data.forEach(row => {
+            results.data.forEach((row: StateData) => {
               if (row.Abbreviation) {
                 data[row.Abbreviation] = row;
               }
             });
             setStatesData(data);
             setDataLoaded(true);
-          },
+          },          
           error: (error) => {
             console.error('Error parsing CSV:', error);
             setStatesData(fallbackData);
