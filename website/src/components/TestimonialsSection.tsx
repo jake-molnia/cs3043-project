@@ -129,7 +129,7 @@ const TestimonialsSection = () => {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <h3 className="text-2xl font-bold mb-4">Share Your Story</h3>
-          <p className="mb-6">We'd love to hear why the right to repair matters to you. Your testimony could inspire others to join the movement and help strengthen our advocacy.</p>
+          <p className="mb-6">We&apos;d love to hear why the right to repair matters to you. Your testimony could inspire others to join the movement and help strengthen our advocacy.</p>
           
           {submitted ? (
             <motion.div 
@@ -137,7 +137,7 @@ const TestimonialsSection = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              Thank you for sharing your story! We'll be in touch soon.
+              Thank you for sharing your story! We&apos;ll be in touch soon.
             </motion.div>
           ) : null}
           
@@ -151,7 +151,6 @@ const TestimonialsSection = () => {
             </motion.div>
           ) : null}
           
-          {/* IMPORTANT: Replace xqaervye with your actual form ID */}
           <form 
             ref={formRef}
             action="https://formspree.io/f/xqaervye"
