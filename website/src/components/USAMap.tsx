@@ -1,121 +1,322 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Papa from 'papaparse';
 
+// The main component for displaying the interactive US map
 const USAMap = () => {
+  const [loadError] = useState(false);
+  // Define the structure of the state data
   interface StateData {
+    State: string;
     Abbreviation: string;
     "State Name": string;
     Current: number;
     Passed: number;
+    Ever: number;
+    Color: string;
     "2025 Bill Number": string;
     "Signed Date": string;
     "Effective Date": string;
     "Covered Products": string;
     Scope: string;
     URL: string;
+    "Nathan's Text": string;
+    "Legislation Prior to 2023": string;
+    "2023 Blue Text": string;
+    "Applicable Date": string;
+    "Violation Penalty": string;
   }
 
+  // States for component
   const [statesData, setStatesData] = useState<Record<string, StateData>>({});
   const [hoveredState, setHoveredState] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [loadError, setLoadError] = useState(false);
   const mapContainerRef = useRef(null);
 
-  // Sample fallback data
-  const fallbackData = {
-    "CA": {
-      "Abbreviation": "CA",
-      "State Name": "California",
-      "Current": 1,
-      "Passed": 1,
-      "2025 Bill Number": "SB 244",
-      "Signed Date": "10/10/2023",
-      "Effective Date": "07/01/2024",
-      "Covered Products": "Electronics, appliances, and farm equipment",
-      "Scope": "Manufacturers must provide parts, tools, and documentation",
-      "URL": "https://leginfo.legislature.ca.gov/"
-    },
-    "NY": {
-      "Abbreviation": "NY",
-      "State Name": "New York",
-      "Current": 1,
-      "Passed": 0,
-      "2025 Bill Number": "S4104",
-      "Signed Date": "",
-      "Effective Date": "",
-      "Covered Products": "Consumer electronics and household appliances",
-      "Scope": "Proposed legislation for repair access",
-      "URL": "https://www.nysenate.gov/"
-    },
-    "CO": {
-      "Abbreviation": "CO",
-      "State Name": "Colorado",
-      "Current": 0,
-      "Passed": 1,
-      "2025 Bill Number": "HB22-1031",
-      "Signed Date": "03/24/2022",
-      "Effective Date": "01/01/2023",
-      "Covered Products": "Powered wheelchairs",
-      "Scope": "Requires manufacturers to provide parts, tools, and documentation",
-      "URL": "https://leg.colorado.gov/"
+  // Load the CSV data directly from string
+  useEffect(() => {
+    // This is the raw CSV data from the uploaded document
+    const csvString = `State,Current,Ever,Passed,Color,URL,State Name,2025 Bill Number,Nathan's Text,Covered Products,Legislation Prior to 2023,2023 Blue Text,Abbreviation,Scope,Signed Date,Effective Date,Applicable Date,Violation Penalty
+Alabama,,1,,Historical,https://alabama.repair.org,Alabama,,,"However, in 2023, Alabama is not considering any Right to Repair bills.",Alabama has considered Right to Repair legislation in the past.,"This year, the people of Alabama have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Alaska,,1,,Historical,https://alaska.repair.org,Alaska,,SB 112 - covers everything but cars.,"In 2023, Alaska is considering a Right to Repair bill that covers all electronics but cars:",,"This year, the people of Alaska have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Arizona,,1,,Historical,https://arizona.repair.org,Arizona,,,"In 2023, Arizona is not considering any Right to Repair bills.",,"This year, the people of Arizona have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Arkansas,,1,,Historical,https://arkansas.repair.org,Arkansas,,,"However, in 2023, Arkansas is not considering any Right to Repair bills.",Arkansas has considered Right to Repair legislation in the past.,"This year, the people of Arkansas have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+California,,1,1,Passed,https://www.repair.org/california,California,SB 244,,,,"In 2023, the people of California passed  Right to Repair for . The law applies to devices manufactured or first sold in the state as of July 1, 2021. Notably, the California law excludes video game consoles and alarm systems. We're pushing strong for California to expand their right to repair to cover these devices. It’s yours. You own it. You shouldn’t have to beg the manufacturer for permission to fix it when it breaks. Tell your legislator that you want the right to repair. There are two easy ways to get in touch: call and write. We’ll track down your legislator’s contact info for you.",CA,,"October 10, 2023",7/1/2024,7/1/2021,"$1,000 per day for the first violation
+$2,000 per day for the second violation
+$5,000 per day for the third and subsequent violations."
+Colorado,,1,1,Passed,https://colorado.repair.org,Colorado,H.B. 1011,HB1011 - covers farm equipment and has been signed into law.,"In 2023, Colorado also passed a Right to Repair bill that covers farm equipment—the first-ever legislation to protect farmers' right to fix their own tractors!","In 2022, Colorado passed the first Right to Repair law in about a decade: The law protects powered wheelchair users' right to fix their own chairs or take them to a shop of their choice. Already, wheelchair users have been using the law to push manufacturers to provide the spare parts and documentation necessary for keeping chairs running.","In 2022, the people of Colorado passed  Right to Repair for Powered Wheelchairs, and they expanded that right to include Farm Equipment in 2023. The law applies to devices manufactured or first sold in the state as of January 1, 2023 for Wheelchairs and January 1, 2024 for Farm Equipment. Notably, the Colorado law excludes Digital Electronic Equipment. We're pushing strong for Colorado to expand their right to repair to cover these devices. It’s yours. You own it. You shouldn’t have to beg the manufacturer for permission to fix it when it breaks. Tell your legislator that you want to epxand the right to repair. There are two easy ways to get in touch: call and write. We’ll track down your legislator’s contact info for you.",CO,,"June 2, 2022 (Wheelchairs) / April 25, 2023 (Agriculture)","1/1/2024 (Farm Equipment)
+1/1/2023 (Powered Wheelchairs)","1/1/2024 (Farm Equipment)
+1/1/2023 (Powered Wheelchairs)","$20,000 per violation"
+Connecticut,1,1,,Current,https://connecticut.repair.org,Connecticut,HB6053,"HB 5755 / HB 6083 - which cover powered wheelchairs, and of which 6083 has pass its first committee, and H.B. 6512 which covers consumer electronics.","In 2023, Connecticut is considering Right to Repair bills that cover powered wheelchairs and consumer electronics:",,"This year, the people of Connecticut have a chance to guarantee their right to repair their stuff—like virtually anything with a computer chip—like smartphones, laptops, and household appliances. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Digital Electronic Equipment,,N/A,,
+Delaware,,1,,Historical,https://delaware.repair.org,Delaware,,"HB41 - covers everything except cars, has cleared committee.","In 2023, Delaware is considering a Right to Repair bill that covers all electronics but cars:",,"This year, the people of Delaware have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Florida,1,1,,Current,https://florida.repair.org,Florida,"H0235, H0311, SB 412","HB 533 / SB 422 - which cover farm equipment, of which the Senate bill passed through committee. Session ended.","In 2023, Florida is considering Right to Repair bills that cover farm equipment:",,"This year, the people of Florida have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,"Portable Wireless Device, Powered Wheelchairs",,7/1/2025,7/1/2025,A violation of this part is a deceptive and unfair trade practice under the Florida Deceptive and Unfair Trade Practices Act.
+Georgia,,1,,Historical,https://georgia.repair.org,Georgia,,SB 243 - covers all products. Session ended.,"In 2023, Georgia is considering a Right to Repair bill that covers all electronics:",,"This year, the people of Georgia have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Hawaii,1,1,,Current,https://hawaii.repair.org,Hawaii,"SB795, HB1464","HB53 / HB 1287 - cover all products except cars, SB 1172 - covers medical devices; SB 1105 and HB 645 - covers all products except heavy equipment and medical devices $100,000. Session ended.","In 2023, Hawaii is considering Right to Repair bills that cover heavy equipment, medical devices, and all electronics except cars:",,"This year, the people of Hawaii have a chance to guarantee their right to repair their stuff—like motor vehicles. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Automotive,,Upon Approval,"2002 (Motor Vehicles)
+2013 (Heavy Equipment) ",Any violation of this chapter shall be deemed to be unfair competition and a restraint of trade under chapter 480.
+Idaho,,1,,Historical,https://idaho.repair.org,Idaho,,,"However, in 2023, Idaho is not considering any Right to Repair bills.",Idaho has considered Right to Repair legislation in the past.,"This year, the people of Idaho have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Illinois,1,1,,Current,https://illinois.repair.org,Illinois,"SB0122, HB2549, HB3490, HB3677, HB1909","HB 3602 - covers powered wheelchairs, HB 3593 - covers all products except medical devices and cars, and HB 3601 - covers laptops and tablets used by school districts.","In 2023, Illinois is considering Right to Repair bills that cover powered wheelchairs, all electronics except medical devices and cars, and laptops and tablets used by school districts:",,"This year, the people of Illinois have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,"Digital Electronic Equipment, Powered Wheelchairs, Farm Equipment",,7/1/2026,7/1/2021,"$1,000 per day for the first violation
+$2,000 per day for the second violation
+and $5,000 per day for the third and subsequent violations"
+Indiana,1,1,,Current,https://indiana.repair.org,Indiana,HB1060,,"However, in 2023, Indiana is not considering any Right to Repair bills.",Indiana has considered Right to Repair legislation in the past.,"This year, the people of Indiana have a chance to guarantee their right to repair their stuff—like tractors and harvesters. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Farm Equipment,,7/1/2025,7/1/2025,A manufacturer that knowingly and intentionally violates sections 17 through 20 of this chapter commits a deceptive act that is 1 actionable by the attorney general and 2 subject to the remedies and penalties under IC 24-5-0.5.
+Iowa,,1,,Historical,https://iowa.repair.org,Iowa,,HF 587 - covers all products.,"In 2023, Iowa is considering a Right to Repair bill that covers all electronics:",,"This year, the people of Iowa have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Kansas,1,1,,Current,https://kansas.repair.org,Kansas,HB2288,,"However, in 2023, Kansas is not considering any Right to Repair bills.",Kansas has considered Right to Repair legislation in the past.,"This year, the people of Kansas have a chance to guarantee their right to repair their stuff—like motor vehicles. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Automotive,,1/1/2026,,"Each denial of access shall constitute a violation of the act and subject to a civil penalty of 3,000 per violation or 10,000, whichever amount is greater."
+Kentucky,,1,,Historical,https://kentucky.repair.org,Kentucky,,,"However, in 2023, Kentucky is not considering any Right to Repair bills.",Kentucky has considered Right to Repair legislation in the past.,"This year, the people of Kentucky have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Louisiana,,1,,Historical,https://louisiana.repair.org,Louisiana,,,"However, in 2023, Louisiana is not considering any Right to Repair bills.",Louisiana has considered Right to Repair legislation in the past.,"This year, the people of Louisiana have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Maine,,1,,Historical,https://maine.repair.org,Maine,,SB 1487 - covers everything but cars.,"In 2023, Maine is considering a Right to Repair bill that covers all electronics but cars:",,"This year, the people of Maine have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Maryland,1,1,,Current,https://maryland.repair.org,Maryland,"HB31, SB382, HB843, HB842","HB 712 - covers farm equipment, was withdrawn. HB 1193 - requires access to repair data from cars.","In 2023, Maryland is considering Right to Repair bills that cover farm equipment and require access to repair data from cars:",,"This year, the people of Maryland have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,"Powered Wheelchairs, Automotive, Farm Equipment",,10/1/2025,,"A violation of this subtitle is an unfair, abusive, or deceptive trade practice within the meaning of Title 13 of this article and subject to the enforcement and penalty provisions contained in Title 13 of this article."
+Massachusetts,1,1,1,Current,https://massachusetts.repair.org,Massachusetts,"SD 732, HD 397, HD 1300, HD 3779, HD 3617",H 360 / S 142 - covers mobile devices.,"In 2023, Massachusetts is considering Right to Repair bills that cover mobile devices:","Massachusetts kicked off the US fight for the Right to Repair with a 2012 bill that protected independent auto repair shops' access to repair materials. That law was expanded via referendum to include telematics data (which increasingly includes diagnostic data), but that new requirement has been the subject of an ongoing legal battle.","This year, the people of Massachusetts have a chance to guarantee their right to repair their stuff—like virtually anything with a computer chip—like smartphones, laptops, and household appliances. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Digital Electronic Equipment,"November 26, 2013 (Motor Vehicles) / November 3, 2020 (Motor Vehicle Data)",,,
+Michigan,,1,,Historical,https://michigan.repair.org,Michigan,,"HB 4562 - covers all electronic devices except cars and 6 similar measures HB 4609, HB 4673, SB 342, HB 4651, SB 341, and HB 4650, which cover farm equipment. Hearing last week, could come up for a vote soon.","In 2023, Michigan is considering Right to Repair bills that cover all farm equipment and electronic devices except cars:",,"This year, the people of Michigan have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Minnesota,,1,1,Passed,https://www.repair.org/minnesota,Minnesota,,"HF 1337 - covers everything but cars and medical devices, SF 1598 overs everything but cars, medical devices ag and heavy equipment. Both were combined into omnibus legislation which was signed into law.","In 2023, Minnesota passed Right to Repair legislation that covers all electronics but cars, medical devices, game consoles, agricultural equipment, and heavy equipment!",,"This year, the people of Minnesota have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. It’s yours. You own it. You shouldn’t have to beg the manufacturer for permission to fix it when it breaks. Tell your legislator that you want the right to repair. There are two easy ways to get in touch: call and write. We’ll track down your legislators’ contact info for you.",MN,,"May 24, 2023",7/1/2024,7/1/2021,
+Mississippi,,1,,Historical,https://mississippi.repair.org,Mississippi,,,"In 2023, Mississippi is not considering any Right to Repair bills.",,"This year, the people of Mississippi have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Missouri,1,1,,Current,https://missouri.repair.org,Missouri,"HB 582, SB 420, HB110, HB 146","SB 554 / HB 217 - cover everything but cars, of which the Senate bill passed committee, HB 698 - covers farm equipment. Session has ended.","In 2023, Missouri is considering Right to Repair bills that cover farm equipment and all electronics but cars:",,"This year, the people of Missouri have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,"Digital Electronic Equipment, Motorcycles, Heavy Equipment
+Agriculture
+Forestry",,8/28/2025,,$500
+Montana,1,1,,Current,https://montana.repair.org,Montana,"HB390, LC23251, LC3252, LC3473, LC3509, LC3791","HB 475 / SB 347 - cover farm equipment, HB 195 - covers powered wheelchairs.","In 2023, Montana is considering Right to Repair bills that cover farm equipment and powered wheelchairs:",,"This year, the people of Montana have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,"Farm Equipment, General",,1/1/2026,,
+Nebraska,,1,,Historical,https://nebraska.repair.org,Nebraska,,,"However, in 2023, Nebraska is not considering any Right to Repair bills.",Nebraska has considered Right to Repair legislation in the past.,"This year, the people of Nebraska have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Nevada,,1,,Historical,https://nevada.repair.org,Nevada,,,"However, in 2023, Nevada is not considering any Right to Repair bills.",Nevada has considered Right to Repair legislation in the past.,"This year, the people of Nevada have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+New Hampshire,,1,,Historical,https://newhampshire.repair.org,New Hampshire,,,,,"This year, the people of New Hampshire have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+New Jersey,1,1,,Current,https://newjersey.repair.org,New Jersey,"S3322, S1723, A3809","AB 1538 - covers everything but cars, AB 3612 - covers farm equipment and lawn mowers.","In 2023, New Jersey is considering Right to Repair bills that cover all electronics but cars, and farm equipment and lawn mowers:",,"This year, the people of New Jersey have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,"Farm Equipment, Digital Electronic Equipment",,,,"A manufacturer that violates any provision of P.L. , c. C. pending before the Legislature as this bill shall be subject to a civil penalty of not more than 500 for each offense."
+New Mexico,1,,,Current,https://newmexico.repair.org,New Mexico,SB69,,"In 2023, New Mexico is not considering any Right to Repair bills.",,"This year, the people of New Mexico have a chance to guarantee their right to repair their stuff—like virtually anything with a computer chip—like smartphones, laptops, and household appliances. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Digital Electronic Equipment,,1/1/2026,"7/1/2021 (Smartphones)
+7/1/2015 (Digital Electronic Equipment)",
+New York,1,1,1,Active and Passed,https://www.repair.org/newyork,New York,New York (2023),,"In 2023, New York is not considering any Right to Repair bills.","In 2022, New York passed the first-ever US digital Right to Repair legislation. Though the law included some unfortunate compromises that resulted from heavy manufacturer lobbying, it still raised the floor for repair legislation in the US. Manufacturers will soon be required to provide consumers and independent with the same parts, tools, and documentation for electronics they use in their own authorized shops.","In 2022, the people of New York passed  Right to Repair. The law applies to devices manufactured or first sold in the state as of 45108. Notably, the New York law excludes certain types of repairs like video game consoles and medical devices. We're pushing strong for New York to expand their right to repair to cover these devices and more! It’s yours. You own it. You shouldn’t have to beg the manufacturer for permission to fix it when it breaks. Tell your legislator that you want to epxand the right to repair. There are two easy ways to get in touch: call and write. We’ll track down your legislator’s contact info for you.",NY,Powered Wheelchairs,"December 28, 2022",12/28/2023,7/1/2023,$500 per violation
+North Carolina,,1,,Historical,https://northcarolina.repair.org,North Carolina,,H752 - covers medical devices.,"In 2023, North Carolina is considering a Right to Repair bill that covers medical devices:",,"This year, the people of North Carolina have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+North Dakota,,1,,Historical,https://northdakota.repair.org,North Dakota,,,"However, in 2023, North Dakota is not considering any Right to Repair bills.",North Dakota has considered Right to Repair legislation in the past.,"This year, the people of North Dakota have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Ohio,,1,,Historical,https://ohio.repair.org,Ohio,,"SB 273 - covers everything except cars, farm and forestry equipment and medical equipment.","In 2023, Ohio is considering a Right to Repair bill that covers all electronics but cars, farm and forestry equipment and medical equipment:",,"This year, the people of Ohio have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Oklahoma,,1,,Historical,https://oklahoma.repair.org,Oklahoma,,SB869 - covers consumer devices.,"In 2023, Oklahoma is considering a Right to Repair bill that covers consumer devices:",,"This year, the people of Oklahoma have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Oregon,1,1,1,Active and Passed,https://www.repair.org/oregon,Oregon,SB 1596,"SB542 - covers personal electronics / consumer devices, and has passed relevant committee.","In 2023, Oregon is considering a Right to Repair bill that covers personal electronics / consumer devices:",,"In 2024, the people of Oregon passed Right to Repair. This legislation ensures that residents can fix their stuff—everything from cell phones and laptops to appliances and more—without facing barriers imposed by manufacturers. The Oregon law applies to cellphones manufactured or first sold in the state as of July 1, 2021 and most other devices as of July 1, 2015. The law does not extend to medical devices, farm equipment, anything that runs on an internal combustion engine, and video game consoles. We continue to advocate for Oregon to broaden the scope of their legislation to include these excluded categories. Ownership implies autonomy. You should not have to request permission from the manufacturer to repair something you own when it malfunctions. We encourage you to continue voicing your support for the Right to Repair! Engage with your legislator by calling or writing in. We'll track down your legislator's contact info for you.",OR,Digital Electronic Equipment,"March 27, 2024",1/1/2025,"7/1/2021 (Cellphones)
+7/1/2015 (Consumer Electronics)",$1000 per day
+Pennsylvania,,1,,Historical,https://pennsylvania.repair.org,Pennsylvania,,"NEW - SB744 - covers all devices except cars, medical devices, and outdoor power, farming, yard and construction equipment.","In 2023, Pennsylvania is considering a Right to Repair bill that covers all devices except cars, medical devices, and outdoor power, farming, yard and construction equipment:",,"This year, the people of Pennsylvania have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Rhode Island,1,1,,Current,https://rhodeisland.repair.org,Rhode Island,"H5017, SB 60, H5159, H5246",,"However, in 2023, Rhode Island is not considering any Right to Repair bills.",Rhode Island has considered Right to Repair legislation in the past.,"This year, the people of Rhode Island have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,"Powered Wheelchairs, Digital Electronic Equipment, Farm Equipment",,1/10/2025,"Manufacturers must provide parts and documentation on fair and reasonable terms, which means at costs and terms equivalent to those offered to authorized repair providers. Documentation must be available at no charge unless requested in physical form.",A violation of the provisions of this section shall constitute a deceptive trade practice in violation of the provisions of chapter 13.1 of title 6 and the attorney general acting in the name of the state may petition for recovery of civil penalties and/or equitable relief.
+South Carolina,,1,,Historical,https://southcarolina.repair.org,South Carolina,,,"However, in 2023, South Carolina is not considering any Right to Repair bills.",South Carolina has considered Right to Repair legislation in the past.,"This year, the people of South Carolina have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+South Dakota,1,1,,Current,https://southdakota.repair.org,South Dakota,HB 1151,"SB 194 covers all but medical, excluded cars. Failed in committee.","In 2023, South Dakota is considering a Right to Repair bill that covers all electronics but medical devices and cars:",,"This year, the people of South Dakota have a chance to guarantee their right to repair their stuff—like tractors and harvesters. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Farm Equipment,,,,
+Tennessee,1,1,,Current,https://tennessee.repair.org,Tennessee,"HB0432, SB0499",SB0077 - covers powered wheelchairs.,"In 2023, Tennessee is considering a Right to Repair bill that covers powered wheelchairs:",,"This year, the people of Tennessee have a chance to guarantee their right to repair their stuff—like tractors and harvesters. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Farm Equipment,,7/1/2025,7/1/2015,"A violation of 47185803 constitutes a violation of the Tennessee Consumer Protection Act of 1977, compiled in part 1 of this chapter. A violation of 47185803 constitutes an unfair or deceptive act or practice affecting trade or commerce and is subject to the penalties and remedies as provided in part 1 of this chapter."
+Texas,1,1,,Current,https://texas.repair.org,Texas,HB 2963,"HB 515 / SB 1654 cover farm and heavy equipment, HB 1606 - covers everything but cars. Did not advance.","In 2023, Texas is considering Right to Repair bills that cover farm and heavy equipment, and all electronics but cars:",,"This year, the people of Texas have a chance to guarantee their right to repair their stuff—like virtually anything with a computer chip—like smartphones, laptops, and household appliances. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Digital Electronic Equipment,,9/1/2026,9/1/2026,"A violation of this chapter following the cure period is a deceptive trade practice and is actionable under Subchapter E, Chapter 17."
+Utah,,1,,Historical,https://utah.repair.org,Utah,,,"In 2023, Utah is not considering any Right to Repair bills.",,"This year, the people of Utah have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,
+Vermont,1,1,,Current,https://vermont.repair.org,Vermont,"H0160, H0161","H. 81 - covers farm equipment and has passed the full House, and H. 79 / S. 46 - covers all equipment but cars and medical devices.","In 2023, Vermont is considering Right to Repair bills that cover farm equipment and all equipment but cars and medical devices.",,"This year, the people of Vermont have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Medical Devices,,7/1/2025,,A person who violates a provision of this subchapter commits an unfair and deceptive act in trade and commerce in violation of section 2453 of this title.
+Virginia,1,1,,Current,https://virginia.repair.org,Virginia,HB 2483,,"However, in 2023, Virginia is not considering any Right to Repair bills.",Virginia has considered Right to Repair legislation in the past.,"This year, the people of Virginia have a chance to guarantee their right to repair their stuff—like virtually anything with a computer chip—like smartphones, laptops, and household appliances. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Digital Electronic Equipment,,7/1/2025,1/1/2026,Any violation of the provisions of this chapter shall constitute a prohibited practice pursuant to the provisions of  59.1200 and shall be subject to any and all of the enforcement provisions of the Virginia Consumer Protection Act.
+Washington,1,1,,Current,https://washington.repair.org,Washington,"HB1483, SB5423, HB1826, SB5680","SB5464 / HB1392 - cover laptops, tablets and cell phones. Passed House.","In 2023, Washington is considering Right to Repair bills that cover laptops, tablets and cell phones:",,"This year, the people of Washington have a chance to guarantee their right to repair their stuff— cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,"Digital Electronic Equipment, Powered Wheelchairs",,1/1/2026,7/1/2021,"A violation of this chapter is not reasonable in relation to the development and preservation of business and is an unfair or deceptive act in trade or commerce and an unfair method of competition for the purpose of applying the consumer protection act, chapter 19.86 RCW."
+West Virginia,1,1,,Current,https://westvirginia.repair.org,West Virginia,"HB2373, SB242, HB2155","HB 3384 . SB 738 - cover farm equipment, passed the Senate","In 2023, West Virginia is considering Right to Repair bills that cover farm equipment:",,"This year, the people of West Virginia have a chance to guarantee their right to repair their stuff—like tractors and harvesters. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Farm Equipment,,7/1/2025,7/1/2025,"A civil penalty of not less than 1,000 for each violation. Each day a violation continues after notice by the commissioner constitutes a separate violation."
+Wisconsin,1,,,Current,https://wisconsin.repair.org,Wisconsin,TBD,,"In 2023, Wisconsin is not considering any Right to Repair bills.",,"This year, the people of Wisconsin have a chance to guarantee their right to repair their stuff—like tractors and harvesters. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,Farm Equipment,,,,
+Wyoming,,1,,Historical,https://wyoming.repair.org,Wyoming,,,"However, in 2023, Wyoming is not considering any Right to Repair bills.",Wyoming has considered Right to Repair legislation in the past.,"This year, the people of Wyoming have a chance to guarantee their right to repair their stuff—like cell phones, laptops, and even tractors. These are your products. You own them, and you shouldn’t have to rely on the manufacturer’s permission to fix them when they break. Take action today: call or write your legislator and demand the right to repair. We’ll help by providing your legislators’ contact information.",,,,,,`;
+    
+    // Parse the CSV data
+    interface CSVRow {
+      State?: string;
+      Abbreviation?: string;
+      "State Name"?: string;
+      Current?: number;
+      Passed?: number;
+      Ever?: number;
+      Color?: string;
+      "2025 Bill Number"?: string;
+      "Signed Date"?: string;
+      "Effective Date"?: string;
+      "Covered Products"?: string;
+      Scope?: string;
+      URL?: string;
+      "Nathan's Text"?: string;
+      "Legislation Prior to 2023"?: string;
+      "2023 Blue Text"?: string;
+      "Applicable Date"?: string;
+      "Violation Penalty"?: string;
     }
+
+    interface PapaParseResult {
+      data: CSVRow[];
+    }
+
+    Papa.parse(csvString, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      complete: (results: PapaParseResult) => {
+      const data: Record<string, StateData> = {};
+      results.data.forEach((row: CSVRow) => {
+        if (row.Abbreviation) {
+        data[row.Abbreviation] = row as StateData;
+        } else if (row.State) {
+        // Some rows might use State instead of Abbreviation
+        const abbr = getStateAbbreviation(row.State);
+        if (abbr) {
+          row.Abbreviation = abbr;
+          data[abbr] = row as StateData;
+        }
+        }
+      });
+      
+      // Add all states even if they're not in the CSV
+      const allStates = getAllStates();
+      for (const [abbr, name] of Object.entries(allStates)) {
+        if (!data[abbr]) {
+        data[abbr] = {
+          Abbreviation: abbr,
+          "State Name": name,
+          Current: 0,
+          Passed: 0,
+          Ever: 0,
+          Color: "Inactive",
+          URL: "",
+          "2025 Bill Number": "",
+          "Signed Date": "",
+          "Effective Date": "",
+          "Covered Products": "",
+          Scope: "",
+          State: name,
+          "Nathan's Text": "",
+          "Legislation Prior to 2023": "",
+          "2023 Blue Text": "",
+          "Applicable Date": "",
+          "Violation Penalty": ""
+        };
+        }
+      }
+      
+      setStatesData(data);
+      setDataLoaded(true);
+      },
+      error: (error: Error) => {
+      console.error('Error parsing CSV:', error);
+      setDataLoaded(true);
+      }
+    });
+  }, []);
+
+  // Get abbreviation from state name
+  const getStateAbbreviation = (stateName: string): string | null => {
+    const stateMap: Record<string, string> = {
+      "Alabama": "AL",
+      "Alaska": "AK",
+      "Arizona": "AZ",
+      "Arkansas": "AR",
+      "California": "CA",
+      "Colorado": "CO",
+      "Connecticut": "CT",
+      "Delaware": "DE",
+      "Florida": "FL",
+      "Georgia": "GA",
+      "Hawaii": "HI",
+      "Idaho": "ID",
+      "Illinois": "IL",
+      "Indiana": "IN",
+      "Iowa": "IA",
+      "Kansas": "KS",
+      "Kentucky": "KY",
+      "Louisiana": "LA",
+      "Maine": "ME",
+      "Maryland": "MD",
+      "Massachusetts": "MA",
+      "Michigan": "MI",
+      "Minnesota": "MN",
+      "Mississippi": "MS",
+      "Missouri": "MO",
+      "Montana": "MT",
+      "Nebraska": "NE",
+      "Nevada": "NV",
+      "New Hampshire": "NH",
+      "New Jersey": "NJ",
+      "New Mexico": "NM",
+      "New York": "NY",
+      "North Carolina": "NC",
+      "North Dakota": "ND",
+      "Ohio": "OH",
+      "Oklahoma": "OK",
+      "Oregon": "OR",
+      "Pennsylvania": "PA",
+      "Rhode Island": "RI",
+      "South Carolina": "SC",
+      "South Dakota": "SD",
+      "Tennessee": "TN",
+      "Texas": "TX",
+      "Utah": "UT",
+      "Vermont": "VT",
+      "Virginia": "VA",
+      "Washington": "WA",
+      "West Virginia": "WV",
+      "Wisconsin": "WI",
+      "Wyoming": "WY"
+    };
+    return stateMap[stateName] || null;
   };
 
-  // Load and parse the CSV data
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Set a timeout to prevent infinite loading
-        const timeoutId = setTimeout(() => {
-          console.warn("Data loading timeout - using fallback data");
-          setStatesData(fallbackData);
-          setDataLoaded(true);
-          setLoadError(true);
-        }, 5000);
-        
-        const response = await fetch('/cs3043-project/map/data-gitbk.csv');
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}`);
-        }
-        
-        const csvData = await response.text();
-        
-        Papa.parse<StateData>(csvData, {
-          header: true,
-          dynamicTyping: true,
-          skipEmptyLines: true,
-          complete: (results) => {
-            const data: Record<string, StateData> = {};
-            results.data.forEach(row => {
-              if (row.Abbreviation) {
-                data[row.Abbreviation] = row;
-              }
-            });
-            setStatesData(data);
-            setDataLoaded(true);
-          },
-        error: (error: unknown) => {
-            console.error('Error parsing CSV:', error);
-            setStatesData(fallbackData);
-            setDataLoaded(true);
-            setLoadError(true);
-          }
-        });
-      } catch (error) {
-        console.error('Error loading CSV file:', error);
-        setStatesData(fallbackData);
-        setDataLoaded(true);
-        setLoadError(true);
-      }
+  // Get all US states with their abbreviations
+  const getAllStates = (): Record<string, string> => {
+    return {
+      "AL": "Alabama",
+      "AK": "Alaska",
+      "AZ": "Arizona",
+      "AR": "Arkansas",
+      "CA": "California",
+      "CO": "Colorado",
+      "CT": "Connecticut",
+      "DE": "Delaware",
+      "FL": "Florida",
+      "GA": "Georgia",
+      "HI": "Hawaii",
+      "ID": "Idaho",
+      "IL": "Illinois",
+      "IN": "Indiana",
+      "IA": "Iowa",
+      "KS": "Kansas",
+      "KY": "Kentucky",
+      "LA": "Louisiana",
+      "ME": "Maine",
+      "MD": "Maryland",
+      "MA": "Massachusetts",
+      "MI": "Michigan",
+      "MN": "Minnesota",
+      "MS": "Mississippi",
+      "MO": "Missouri",
+      "MT": "Montana",
+      "NE": "Nebraska",
+      "NV": "Nevada",
+      "NH": "New Hampshire",
+      "NJ": "New Jersey",
+      "NM": "New Mexico",
+      "NY": "New York",
+      "NC": "North Carolina",
+      "ND": "North Dakota",
+      "OH": "Ohio",
+      "OK": "Oklahoma",
+      "OR": "Oregon",
+      "PA": "Pennsylvania",
+      "RI": "Rhode Island",
+      "SC": "South Carolina",
+      "SD": "South Dakota",
+      "TN": "Tennessee",
+      "TX": "Texas",
+      "UT": "Utah",
+      "VT": "Vermont",
+      "VA": "Virginia",
+      "WA": "Washington",
+      "WV": "West Virginia",
+      "WI": "Wisconsin",
+      "WY": "Wyoming"
     };
+  };
 
-    loadData();
-    {/* eslint-disable-next-line react-hooks/exhaustive-deps */}
-  }, []);
+  interface MouseEvent {
+    clientX: number;
+    clientY: number;
+  }
+
+  // Handle mouse movement for tooltip positioning
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!mapContainerRef.current) return;
+    
+    // Get the map container's position
+    const rect = (mapContainerRef.current as HTMLElement).getBoundingClientRect();
+    
+    // Calculate position relative to the map container
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Set tooltip position
+    setTooltipPosition({
+      x: x,
+      y: y
+    });
+  };
 
   // Add event handlers to state paths after data is loaded
   useEffect(() => {
@@ -155,36 +356,13 @@ const USAMap = () => {
         }
       });
     }
-    {/* eslint-disable-next-line react-hooks/exhaustive-deps */}
   }, [dataLoaded, statesData]);
-
-  interface MouseEvent {
-    clientX: number;
-    clientY: number;
-  }
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!mapContainerRef.current) return;
-    
-    // Get the map container's position
-    const rect = (mapContainerRef.current as HTMLElement).getBoundingClientRect();
-    
-    // Calculate position relative to the map container
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    // Set tooltip position
-    setTooltipPosition({
-      x: x,
-      y: y
-    });
-  };
 
   // Get fill color based on state status
   const getStateColor = (stateAbbr: string): string => {
     if (!statesData[stateAbbr]) return "#f0f0f0"; // Default color if no data
 
-    const state: StateData = statesData[stateAbbr];
+    const state = statesData[stateAbbr];
     
     if (state.Passed === 1 && state.Current === 1) {
       return "#660000"; // Dark red for "Law Passed & Currently Active"
@@ -192,8 +370,10 @@ const USAMap = () => {
       return "#222222"; // Black for "Law Passed"
     } else if (state.Current === 1) {
       return "#cc0000"; // Red for "Active in 2025"
-    } else {
+    } else if (state.Ever === 1) {
       return "#ffcccc"; // Light pink for "Active Before 2025"
+    } else {
+      return "#f0f0f0"; // Gray for inactive states
     }
   };
 
@@ -201,7 +381,7 @@ const USAMap = () => {
   const highlightStateColor = (stateAbbr: string): string => {
     if (!statesData[stateAbbr]) return "#f8f8f8";
     
-    const state: StateData = statesData[stateAbbr];
+    const state = statesData[stateAbbr];
     
     if (state.Passed === 1 && state.Current === 1) {
       return "#990000"; // Brighter dark red
@@ -209,8 +389,10 @@ const USAMap = () => {
       return "#555555"; // Brighter black
     } else if (state.Current === 1) {
       return "#ff0000"; // Brighter red
-    } else {
+    } else if (state.Ever === 1) {
       return "#ffe6e6"; // Brighter light pink
+    } else {
+      return "#f8f8f8"; // Brighter gray
     }
   };
 
@@ -222,8 +404,10 @@ const USAMap = () => {
       return "Law Passed";
     } else if (state.Current === 1) {
       return "Active in 2025";
+    } else if (state.Ever === 1) {
+      return "Previous Legislative Activity";
     } else {
-      return "Active Before 2025";
+      return "No Legislative Activity";
     }
   };
 
