@@ -8,24 +8,38 @@ import { motion } from 'framer-motion';
 const testimonials = [
   {
     id: 1,
-    name: "Sarah Johnson",
-    role: "DIY Electronics Enthusiast",
-    text: "I've saved hundreds of dollars repairing my own devices. Right to repair isn't just about saving money—it's about the satisfaction of fixing something with your own hands and reducing electronic waste.",
-    image: "/cs3043-project/testimonials/placeholder2.png"
-  },
-  {
-    id: 2,
-    name: "Michael Rodriguez",
-    role: "Independent Repair Shop Owner",
-    text: "As a small business owner, the right to repair movement has been crucial for my livelihood. Manufacturers are making it increasingly difficult to access parts and documentation, threatening thousands of local repair shops across the country.",
+    name: "Benjamin Greenwood",
+    role: "",
+    text: "Our ability to repair and reuse is an essential skill for us to promote in order to create a sustainable society. It is in our own interest to learn how to repair and service equipment that we ourselves own. I believe that it is also in a company's interest to encourage and facilitate repair because it incentives loyalty and future purchases.",
     image: "/cs3043-project/testimonials/placeholder1.jpg"
   },
   {
-    id: 3,
-    name: "Emma Chen",
-    role: "Environmental Activist",
-    text: "Every device we repair is one less in the landfill. The environmental impact of our throwaway culture is devastating. Right to repair is an essential part of building a sustainable future for the next generation.",
+    id: 2,
+    name: "Astrella Brown",
+    role: "Student at WPI",
+    text: "Overall I believe right to repair is a great thing! In a town near my small hometown, there used to be many fast food places and many many chain restaurants, recently many restaurants have been going out of business, which I can imagine right to repair had a part in. Overall I think right to repair can support local business owners and is overall good!",
     image: "/cs3043-project/testimonials/placeholder2.png"
+  },
+  {
+    id: 3,
+    name: "Adam Field",
+    role: "Physics Student at WPI ",
+    text: "For me, the right to repair isn't just about convenience. It's about fairness, sustainability, and the freedom to truly own the things we buy. Because in my mind, if I can't fix it, do I really own it at all?",
+    image: "/cs3043-project/testimonials/placeholder1.jpg"
+  },
+  {
+    id: 4,
+    name: "Rio Blumenthal",
+    role: "CS Student at WPI ",
+    text: "I think that a side of the issue that doesn't get talked about enough is E-Waste. Too often, when a company intentionally makes something hard to repair, it's just not worth attempting to repair it or paying steep prices to have it repaired at the source, which often leads to them ending up in landfills, contributing to pollution and resource depletion. Extending the lifespan of electronics reduces waste and conserves resources.",
+    image: "/cs3043-project/testimonials/placeholder1.jpg"
+  },
+  {
+    id: 5,
+    name: "Shreyas Potnuru",
+    role: "ECE Student at WPI ",
+    text: "Right to Repair matters because it empowers consumers to fix and maintain their devices without being forced into expensive, manufacturer-controlled services. It drives down costs, reduces electronic waste by extending device lifespans, and fosters a competitive repair market that can spark innovation and better service options.",
+    image: "/cs3043-project/testimonials/placeholder1.jpg"
   }
 ];
 
