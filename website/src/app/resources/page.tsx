@@ -1,9 +1,10 @@
 import { resourcesData } from '@/lib/data/resourcesData';
 import { Metadata } from 'next';
+import LetterTemplateSection from '@/components/LetterTemplateSection';
 
 export const metadata: Metadata = {
   title: 'Right to Repair | Resources',
-  description: 'Resources and links related to the Right to Repair movement',
+  description: 'Resources and links related to the Right to Repair movement, including advocacy tools',
 };
 
 export default function Resources() {
@@ -14,6 +15,11 @@ export default function Resources() {
         Explore these resources to learn more about the Right to Repair movement and how you can get involved.
       </p>
 
+      {/* Letter Template Section */}
+      <LetterTemplateSection />
+
+      {/* Original Resources Grid */}
+      <h2 className="text-2xl font-bold mb-6 text-center">Helpful Resources</h2>
       <div className="grid md:grid-cols-2 gap-8">
         {Object.entries(resourcesData).map(([category, resources], index) => (
           <div 
